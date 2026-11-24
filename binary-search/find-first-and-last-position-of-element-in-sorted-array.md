@@ -43,57 +43,57 @@ We use **two binary searches**:
 1. Find the first occurrence of `target`.
 2. Find the last occurrence of `target`.
 
-Instead of writing two separate binary-search functions, we write one helper function and control its behaviour using a boolean parameter named `findFirst`.
+Instead of writing two separate binary-search functions, we write one reusable `search()` function and control its behaviour using a boolean parameter named `findFirst`. Before searching, `searchRange()` handles a null or empty array. It also checks whether the first occurrence exists; if not, it immediately returns `[-1, -1]` without running the second binary search.
 
-- `findFirst = true`: when the target is found, store its index and continue searching in the **left half**. This helps us find the first occurrence.
-- `findFirst = false`: when the target is found, store its index and continue searching in the **right half**. This helps us find the last occurrence.
+- `findFirst = true`: when the target is found, store its index in `ans` and continue searching in the **left half** using `r = mid - 1`. This finds the first occurrence.
+- `findFirst = false`: when the target is found, store its index in `ans` and continue searching in the **right half** using `l = mid + 1`. This finds the last occurrence.
 
 ### Java Code
 
 ```java
 class Solution {
-
     public int[] searchRange(int[] nums, int target) {
 
-        int first = findPosition(nums, target, true);
-        int last  = findPosition(nums, target, false);
+        if (nums == null || nums.length == 0) {
+            return new int[]{-1, -1};
+        }
+
+        int first = search(nums, target, true);
+
+        // If target does not exist, there is no need to search for last.
+        if (first == -1) {
+            return new int[]{-1, -1};
+        }
+
+        int last = search(nums, target, false);
 
         return new int[]{first, last};
     }
 
-    private int findPosition(int[] nums, int target, boolean findFirst) {
+    public static int search(int[] nums, int target, boolean findFirst) {
 
-        int low = 0;
-        int high = nums.length - 1;
-        int ans = -1;
+        int l = 0, r = nums.length - 1, ans = -1;
 
-        while (low <= high) {
+        while (l <= r) {
 
-            // Calculate the middle index safely
-            int mid = low + (high - low) / 2;
+            // Safe middle-index calculation
+            int mid = l + (r - l) / 2;
 
             if (nums[mid] == target) {
-
-                // Store the current occurrence
                 ans = mid;
 
                 if (findFirst) {
-                    // Search further in the left half
-                    high = mid - 1;
+                    // Save this occurrence and continue left
+                    r = mid - 1;
                 } else {
-                    // Search further in the right half
-                    low = mid + 1;
+                    // Save this occurrence and continue right
+                    l = mid + 1;
                 }
 
             } else if (nums[mid] < target) {
-
-                // Target can only be on the right side
-                low = mid + 1;
-
+                l = mid + 1;
             } else {
-
-                // Target can only be on the left side
-                high = mid - 1;
+                r = mid - 1;
             }
         }
 
